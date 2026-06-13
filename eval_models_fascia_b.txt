@@ -1,0 +1,32 @@
+# FASCIA B - modelli che richiedono memoria ampia (Strix Halo 128GB / macchina
+# di noleggio grande). Ogni modello alla QUANTIZZAZIONE massima che sta nei
+# ~115GB utilizzabili dello Strix Halo CONSIDERANDO ANCHE LA KV CACHE del
+# contesto: il veto/sequenziamento puo richiedere finestre ampie (16-32K),
+# che su un modello grande costano 6-11GB oltre ai pesi.
+#
+# CONTI (stime, KV cache FP16 a 32K; VERIFICARE sull'hardware reale):
+#   70B  @ Q8  : 75GB pesi + ~8GB (32K) = ~83GB  -> sta comodo, "praticamente pieno"
+#   123B @ Q5  : 85GB pesi + ~12GB (32K) = ~97GB -> sta. (Q6 a 32K = ~110GB,
+#                margine troppo sottile: scelto Q5 per garantire la finestra)
+#   235B @ Q3  : 105GB pesi + ~6GB (32K) = ~111GB -> AL LIMITE (4GB di margine).
+#                Condizionato: con contesto ampio potrebbe NON entrare sullo
+#                Strix Halo reale. Praticabile con certezza solo a contesto
+#                ridotto (<=8K). Vedi nota.
+
+# --- I tre 70B a Q8 (praticamente pieni, contesto 32K comodo) ---
+llama3.3:70b-instruct-q8_0
+qwen2.5:72b-instruct-q8_0
+deepseek-r1:70b-q8_0
+
+# --- Mistral Large 123B a Q5 (sceso da Q6 per far stare il contesto 32K) ---
+# Se il tag Ollama Q5 non esiste, importare GGUF Q5_K_M da HuggingFace.
+mistral-large:123b-instruct-q5_K_M
+
+# --- Qwen3 235B MoE a Q3 - CONDIZIONATO ---
+# A Q3 i pesi (~105GB) lasciano ~10GB nei 115GB: basta per contesto modesto
+# (8K) ma il margine per 32K e' minimo e va verificato sull'hardware reale.
+# E' valutato a Q3, quant COMPRESSA: i risultati non rappresentano il 235B
+# "pieno". Se a Q3 + contesto utile non entra o rende male, la conclusione e'
+# che il 235B sullo Strix Halo non e' praticabile in condizioni reali - di per
+# se' un dato per la decisione hardware. Tag Q3 probabile import GGUF (unsloth).
+qwen3:235b-a22b-q3_K_M

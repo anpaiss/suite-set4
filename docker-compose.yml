@@ -1,0 +1,29 @@
+# docker-compose.yml - alternativa al docker run per il giro SET 4.
+# Imposta i parametri via variabili d'ambiente; modificare MODELS_FILE/REPS
+# per i diversi giri (fascia_a, fascia_b, stabilita).
+
+services:
+  eval:
+    build: .
+    image: set4-eval
+    # Richiede il runtime GPU NVIDIA (nvidia-container-toolkit sul pod).
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      MODELS_FILE: "${MODELS_FILE:-eval_models_fascia_a.txt}"
+      CASES_FILE: "${CASES_FILE:-eval_cases_set4.yaml}"
+      REPS: "${REPS:-3}"
+      TEMPERATURE: "${TEMPERATURE:-}"
+      THINK: "${THINK:-false}"
+      SKIP_PULL: "${SKIP_PULL:-0}"
+    volumes:
+      - ./output:/suite/output           # risultati recuperabili qui
+      - ollama_models:/root/.ollama       # cache modelli persistente tra i giri
+
+volumes:
+  ollama_models:
