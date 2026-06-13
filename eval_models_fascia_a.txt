@@ -1,25 +1,6 @@
-# FASCIA A - modelli che girano in una GPU da 32GB (R9700). Sono la rosa "se
-# NON si cambia hardware". CRITERIO: ogni modello alla quant MASSIMA che sta
-# nei ~30GB utilizzabili CON contesto 32K - niente strozzature inutili dove
-# c'e spazio. Su 32GB i modelli <=32B stanno ben oltre il Q4.
-#
-# CONTI (pesi + KV cache 32K, tetto prudente 30GB):
-#   qwen3:14b        -> FP16 (~30GB)  pieno, non quantizzato affatto
-#   gpt-oss:20b      -> Q8   (~25GB)
-#   mistral-small 24b-> Q8   (~28GB)
-#   gemma4:26b       -> Q6   (~24GB)  Q8 a ~30 e' al limite, Q6 e' sicuro
-#   qwen3.6:27b      -> Q6   (~25GB)
-#   qwen3:32b        -> Q6   (~30GB)  al limite ma sta
-#
-# NOTA: tra Q4 e Q6/Q8 la differenza di qualita e' piccola ma reale; si testa
-# alla qualita che la R9700 permette davvero, non a una stima penalizzante.
-# Verificare i tag con `ollama list`: dove un tag quant esplicito non esiste
-# su Ollama, il default (di solito Q4_K_M) va bene come fallback, oppure
-# importare il GGUF alla quant voluta.
-
 qwen3:14b-fp16
 gpt-oss:20b
-mistral-small:24b-instruct-q8_0
-gemma4:26b-q6_K
-qwen3.6:27b-q6_K
-qwen3:32b-q6_K
+mistral-small:24b
+gemma4:26b
+qwen3.6:27b
+qwen3:32b
