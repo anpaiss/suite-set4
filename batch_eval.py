@@ -138,11 +138,21 @@ def extract_verdict(raw):
     restituisce stringa vuota: la risposta resta comunque salvata per intero
     nell'output leggibile.
     """
+    cleaned = str(raw).strip()
+    if "```" in cleaned:
+        parts = cleaned.split("```")
+        if len(parts) >= 2:
+            cleaned = parts[1]
+            if cleaned.lstrip().lower().startswith("json"):
+                cleaned = cleaned.lstrip()[4:]
+    a, b = cleaned.find("{"), cleaned.rfind("}")
+    if a != -1 and b != -1 and b > a:
+        cleaned = cleaned[a:b + 1]
     try:
-        parsed = json.loads(raw)
+        parsed = json.loads(cleaned)
     except (ValueError, TypeError):
         return ""
-    for key in ("decisione", "classe", "esito"):
+    for key in ("decisione", "classe", "esito", "categoria"):
         if key in parsed:
             return str(parsed[key]).strip()
     return ""

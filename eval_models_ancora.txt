@@ -1,4 +1,1 @@
-# Ancora per il giro di stabilita: la STESSA Gemma della fascia A (Q6), cosi
-# il confronto tra le due macchine e tra i due giri e pulito - stesso modello,
-# stessa quant. Q6 e' la quant massima che la R9700 ospita con contesto 32K.
-gemma4:26b-q6_K
+gemma4:26b
