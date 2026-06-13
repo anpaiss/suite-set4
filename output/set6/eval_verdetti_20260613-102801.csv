@@ -1,0 +1,10 @@
+id,famiglia,verdetto_atteso,qwen3:32b,gemma4:26b,gpt-oss:20b
+S6-SC1-op,scenario,,(n/d) 3/3,(n/d) 3/3,(n/d) 3/3
+S6-SC1-sax,scenario,,(n/d) 3/3,(n/d) 3/3,(n/d) 3/3
+S6-SC2-op,scenario,,(n/d) 3/3,(n/d) 3/3,(n/d) 3/3
+S6-SC2-sax,scenario,,(n/d) 3/3,(n/d) 3/3,(n/d) 3/3
+S6-SC3-op,scenario,,(n/d) 3/3,(n/d) 3/3,(n/d) 3/3
+S6-SC3-sax,scenario,,(n/d) 3/3,(n/d) 3/3,(n/d) 3/3
+S6-SC4-op,scenario,,(n/d) 3/3,(n/d) 3/3,(n/d) 3/3
+S6-SC4-sax,scenario,,(n/d) 3/3,(n/d) 3/3,(n/d) 3/3
+S6-SC5-op,scenario,,(n/d) 3/3,(n/d) 3/3,(n/d) 3/3
