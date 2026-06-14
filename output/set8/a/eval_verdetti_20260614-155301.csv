@@ -1,0 +1,13 @@
+id,famiglia,verdetto_atteso,qwen3:32b
+S8A-S1-15k,contesto_lungo,,CAUTELA 3/3
+S8A-S1-24k,contesto_lungo,,CAUTELA 2/3; PROCEDI 1/3
+S8A-S2-15k,contesto_lungo,,CAUTELA 3/3
+S8A-S2-24k,contesto_lungo,,CAUTELA 2/3; VETO 1/3
+S8A-S3-15k,contesto_lungo,,CAUTELA 3/3
+S8A-S3-24k,contesto_lungo,,CAUTELA 3/3
+S8A-S4-15k,contesto_lungo,,CAUTELA 3/3
+S8A-S4-24k,contesto_lungo,,CAUTELA 3/3
+S8A-S5-15k,contesto_lungo,,CAUTELA 3/3
+S8A-S5-24k,contesto_lungo,,CAUTELA 2/3; PROCEDI 1/3
+S8A-S6-15k,contesto_lungo,,CAUTELA 2/3; PROCEDI 1/3
+S8A-S6-24k,contesto_lungo,,PROCEDI 2/3; CAUTELA 1/3

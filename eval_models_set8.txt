@@ -1,0 +1,2 @@
+gemma4:26b
+qwen3:32b
