@@ -46,15 +46,22 @@ def registro_di(case_id):
     if "-S" in case_id: return "stop"
     return "?"
 
+try:
+    from estrazione import estrai as _estrai_robusto
+except ImportError:
+    _estrai_robusto = None
+
 def estrai_decisione(raw):
-    """Estrae decisione_finale dalla risposta, gestendo markdown e testo extra."""
+    """Estrae decisione_finale dalla risposta usando il motore robusto al thinking
+    (estrazione.py). Ripiega su una regex semplice solo se il modulo non e presente."""
+    if _estrai_robusto is not None:
+        return _estrai_robusto(raw).get("decisione")
     if not raw:
         return None
     s = str(raw)
-    m = re.search(r'"decisione_finale"\s*:\s*"([^"]+)"', s)
-    if m:
-        return m.group(1).strip().upper()
-    return None
+    # ripiego: ultima occorrenza, non la prima (evita frammenti nel reasoning)
+    occ = re.findall(r'"decisione_finale"\s*:\s*"([^"]+)"', s)
+    return occ[-1].strip().upper() if occ else None
 
 def classe(dec):
     if dec is None:

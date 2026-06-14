@@ -95,7 +95,7 @@ def parse_think(value):
 
 
 def query_model(ollama_url, model, system_prompt, user_input, num_ctx, timeout,
-                temperature=None, think=False):
+                temperature=None, think=False, force_json=True):
     """Invia un singolo caso a un modello e restituisce la risposta grezza.
 
     Richiede output JSON per coerenza con il sistema di produzione e per poter
@@ -106,43 +106,63 @@ def query_model(ollama_url, model, system_prompt, user_input, num_ctx, timeout,
     options = {"num_ctx": num_ctx}
     if temperature is not None:
         options["temperature"] = temperature
+    # Il JSON forzato (format=json) e robusto su qwen3/gemma ma puo degradare o
+    # rompere l'output di gpt-oss in formato Harmony. EVAL_FORCE_JSON permette di
+    # disattivarlo; in tal caso il JSON si chiede solo nel prompt e si estrae a valle.
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_input},
+        ],
+        "stream": False,
+        "options": options,
+        "think": think,
+        "keep_alive": "30m",
+    }
+    if force_json:
+        payload["format"] = "json"
     try:
         response = requests.post(
             f"{ollama_url.rstrip('/')}/api/chat",
-            json={
-                "model": model,
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_input},
-                ],
-                "stream": False,
-                "format": "json",
-                "options": options,
-                "think": think,
-                "keep_alive": "30m",
-            },
+            json=payload,
             timeout=timeout,
         )
         response.raise_for_status()
-        content = response.json()["message"]["content"]
-        return {"ok": True, "raw": content}
+        msg = response.json().get("message", {})
+        # Ollama separa nativamente il ragionamento (thinking) dalla risposta
+        # (content) quando think e attivo. Si preservano entrambi.
+        content = msg.get("content", "")
+        thinking = msg.get("thinking", "")
+        return {"ok": True, "raw": content, "thinking": thinking}
     except (requests.RequestException, KeyError, ValueError) as error:
-        return {"ok": False, "raw": f"[ERRORE: {error}]"}
+        return {"ok": False, "raw": f"[ERRORE: {error}]", "thinking": ""}
+
+
+try:
+    from estrazione import estrai as _estrai_robusto
+except ImportError:
+    _estrai_robusto = None
 
 
 def extract_verdict(raw):
-    """Estrae un verdetto sintetico dalla risposta JSON, se presente.
+    """Estrae un verdetto sintetico dalla risposta.
 
-    Cerca le chiavi di verdetto usate dai vari system prompt (decisione, classe,
-    esito). Se la risposta non e JSON parsabile o non contiene un verdetto noto,
-    restituisce stringa vuota: la risposta resta comunque salvata per intero
-    nell'output leggibile.
+    Usa il motore robusto al thinking (estrazione.py) per ottenere la
+    decisione_finale, gestendo reasoning, Harmony e JSON sporco. Ripiega sulle
+    chiavi legacy (decisione, classe, esito) per compatibilita coi set
+    precedenti. Stringa vuota se nulla di estraibile: la risposta resta comunque
+    salvata per intero nell'output leggibile.
     """
+    if _estrai_robusto is not None:
+        dec = _estrai_robusto(raw).get("decisione")
+        if dec:
+            return dec
     try:
         parsed = json.loads(raw)
     except (ValueError, TypeError):
         return ""
-    for key in ("decisione", "classe", "esito"):
+    for key in ("decisione_finale", "decisione", "classe", "esito"):
         if key in parsed:
             return str(parsed[key]).strip()
     return ""
@@ -183,6 +203,10 @@ def main():
     temperature_env = get_env("EVAL_TEMPERATURE")
     temperature = float(temperature_env) if temperature_env else None
     think = parse_think(get_env("EVAL_THINK", "false"))
+    # format=json forzato a livello API: ottimo su qwen3/gemma, problematico su
+    # gpt-oss (Harmony). Disattivabile con EVAL_FORCE_JSON=false; in quel caso il
+    # JSON si chiede nel prompt e si estrae a valle col motore tollerante.
+    force_json = get_env("EVAL_FORCE_JSON", "true").strip().lower() not in ("false", "0", "no")
 
     models = load_models(models_file)
     system_prompts, cases = load_cases(cases_file)
@@ -228,7 +252,7 @@ def main():
             for rep in range(1, reps + 1):
                 outcome = query_model(
                     ollama_url, model, sp, case["input"], num_ctx, timeout,
-                    temperature=temperature, think=think,
+                    temperature=temperature, think=think, force_json=force_json,
                 )
                 verdict = extract_verdict(outcome["raw"]) if outcome["ok"] else "ERRORE"
                 rep_list.append({"raw": outcome["raw"], "verdict": verdict})
@@ -243,6 +267,7 @@ def main():
                         "ok": outcome["ok"],
                         "verdetto": verdict,
                         "raw": outcome["raw"],
+                        "thinking": outcome.get("thinking", ""),
                     }, ensure_ascii=False) + "\n")
 
                 rep_label = f" rep {rep}/{reps}" if reps > 1 else ""

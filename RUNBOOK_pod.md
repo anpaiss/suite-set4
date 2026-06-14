@@ -64,10 +64,34 @@ Oppure GGUF Q6_K (repo da confermare al momento, es. Qwen ufficiale o bartowski)
     EVAL_MODELS_FILE=/workspace/modelli_set7.txt \
     EVAL_CASES_FILE=eval_cases_set7.yaml \
     EVAL_REPS=3 EVAL_NUM_CTX=16384 \
+    EVAL_THINK=true \
     EVAL_OUTPUT_DIR=/workspace/suite-set4/output/set7 \
     OLLAMA_URL=http://localhost:11434 \
     python3 batch_eval.py
     # stacca: Ctrl-b d   |   riattacca: tmux attach -t set7
+
+### Parametri rilevanti per il thinking
+
+- EVAL_THINK=true   attiva il ragionamento sui modelli che lo supportano.
+  Ollama separa nativamente thinking e risposta: il motore preserva entrambi
+  nel JSONL (campo "thinking") ed estrae la decisione dal content ripulito.
+- EVAL_FORCE_JSON   default true. Forza format=json a livello API: robusto su
+  qwen3 e gemma, MA problematico su gpt-oss (Harmony tende a produrre JSON
+  sporco). Se nel giro gpt-oss desse output malformati o vuoti, ripetere il
+  suo giro con EVAL_FORCE_JSON=false: il JSON si chiede solo nel prompt e il
+  motore di estrazione lo recupera in modo tollerante.
+  Esempio mirato solo su gpt-oss:
+    printf 'gpt-oss:20b\n' > /workspace/solo_gptoss.txt
+    EVAL_MODELS_FILE=/workspace/solo_gptoss.txt EVAL_FORCE_JSON=false \
+    EVAL_CASES_FILE=eval_cases_set7.yaml EVAL_REPS=3 EVAL_NUM_CTX=16384 \
+    EVAL_THINK=true EVAL_OUTPUT_DIR=/workspace/suite-set4/output/set7 \
+    python3 batch_eval.py
+
+Nota: il motore di estrazione (estrazione.py) gestisce i tre formati
+(think-tag di qwen3/gemma, Harmony di gpt-oss, separazione nativa di Ollama),
+prende sempre la decisione FINALE (l'ultima, non un valore considerato nel
+reasoning) e ripiega su regex se il JSON e malformato. Il thinking non viene
+scartato: resta nel JSONL per l'analisi dei disaccordi.
 
 ## 5. Analisi del consenso (a fine giro)
 
