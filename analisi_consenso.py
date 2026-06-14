@@ -32,10 +32,12 @@ Uso:
 import sys, os, glob, json, re
 from collections import defaultdict
 
-MODELLI = ["gemma4:26b", "gpt-oss:20b", "qwen3:32b"]
+MODELLI = ["gemma4:26b", "gpt-oss:20b", "qwen3:32b", "qwen3:32b-q6"]
 COPPIE = {
-    "A: gemma + gpt-oss":   ("gemma4:26b", "gpt-oss:20b"),
-    "B: gemma + qwen3:32b": ("gemma4:26b", "qwen3:32b"),
+    "A: gemma + gpt-oss":      ("gemma4:26b", "gpt-oss:20b"),
+    "B: gemma + qwen3:32b Q4": ("gemma4:26b", "qwen3:32b"),
+    "C: gemma + qwen3:32b Q6": ("gemma4:26b", "qwen3:32b-q6"),
+    "D: gpt-oss + qwen3:32b":  ("gpt-oss:20b", "qwen3:32b"),
 }
 VIA_LIBERA = {"PROCEDI"}
 
